@@ -1,0 +1,88 @@
+{
+  // Explorer //
+  "files.exclude": {
+    "**/__pycache__": true,
+    ".ruff_cache*": true,
+    ".mypy_cache*": true,
+    ".pytest_cache": true
+  },
+  "explorer.autoReveal": false,
+  // Type check //
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.indexing": true,
+  "python.analysis.typeCheckingMode": "basic",
+  // Extensions //
+  // Code spell
+  "cSpell.enabled": true,
+  "cSpell.language": "en,ru",
+  // TODO tree
+  "todo-tree.general.tags": [
+    "TODO:",      // 📝 Task to be done
+    "FIXME:",     // 🐛 Bug or error that needs fixing
+    "BUG:",       // 🐞 Known issue or defect
+    "HACK:",      // 🔧 Temporary/experimental solution, needs refactoring
+    "NOTE:",      // ℹ️ Important note, explanation, or decision
+    "IDEA:",      // 💡 Potential improvement or experimental concept
+    "OPTIMIZE:",  // ⚡  Performance improvement needed
+    "PERF:",      // 📊 Performance bottleneck
+    "REFACTOR:",  // 🔨 Code needs restructuring
+    "REVIEW:",    // 👀 Code needs review
+    "TEST:",      // 🧪 Missing tests or test improvements
+    "DOCS:",      // 📚 Documentation needed
+    "DEPRECATED:",// 🗑️ Outdated code, should be removed
+    "SECURITY:",  // 🔒 Security vulnerability or concern
+    "XXX:",       // ⚠️ Critical issue, requires immediate attention
+    "QUESTION:",  // ❓ Question for reviewers or self
+    "WARN:"       // ⚠️ Warning about potential problems
+  ],
+  "todo-tree.highlights.customHighlight": {
+    // 🟡 Tasks & Actions
+    "TODO:": {"foreground": "#000000", "background": "#FFB74D"},
+    "IDEA:": {"foreground": "#000000", "background": "#FFD54F"},
+    // 🔴 Errors & Critical
+    "FIXME:": {"foreground": "#FFFFFF", "background": "#E53935"},
+    "BUG:": {"foreground": "#FFFFFF", "background": "#D32F2F"},
+    "XXX:": {"foreground": "#FFFFFF", "background": "#B71C1C"},
+    "WARN:": {"foreground": "#000000", "background": "#FFB300"},
+    // 🟢 Notes & Info
+    "NOTE:": {"foreground": "#FFFFFF", "background": "#43A047"},
+    "QUESTION:": {"foreground": "#FFFFFF", "background": "#1E88E5"},
+    "REVIEW:": {"foreground": "#FFFFFF", "background": "#8E24AA"},
+    "DEPRECATED:": {"foreground": "#FFFFFF", "background": "#757575"},
+    // 🟠 Code Quality
+    "OPTIMIZE:": {"foreground": "#000000", "background": "#FFA726"},
+    "PERF:": {"foreground": "#000000", "background": "#F57C00"},
+    "REFACTOR:": {"foreground": "#FFFFFF", "background": "#6A1B9A"},
+    "TEST:": {"foreground": "#FFFFFF", "background": "#00897B"},
+    "DOCS:": {"foreground": "#FFFFFF", "background": "#546E7A"},
+    // 🔵 Special
+    "HACK:": {"foreground": "#FFFFFF", "background": "#6A1B9A"},
+    "SECURITY:": {"foreground": "#FFFFFF", "background": "#C62828"}
+  },
+  // Item enumeraion //
+  // Code spell
+  "cSpell.words": [
+    // Project settings
+    "Mikurov",
+    "venv",
+    "virtualenvs",
+    "pycache",
+    "mypy",
+    "pytest",
+    // Documentaiton
+    "DTOs",
+    // Sphinx directives
+    "toctree",
+    "maxdepth",
+    // Project
+    "learnables",
+    // Dependencies
+    "autouse",
+    "usefixtures",
+    // Site
+    "htmx",
+    "testid",
+    "validatable",
+    "preparable",
+  ]
+}
