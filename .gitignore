@@ -1,0 +1,10 @@
+# Distribution / packaging
+.venv/
+build/
+
+# Static files
+static/
+
+# Byte-compiled
+__pycache__
+*.mo
