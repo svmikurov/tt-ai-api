@@ -11,3 +11,5 @@ Tech task CHKPZ documentation
    :caption: Contents:
 
    interview/index
+   theory/index
+   glossary/index
