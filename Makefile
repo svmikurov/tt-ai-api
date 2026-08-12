@@ -14,6 +14,10 @@ clean:
 docs-build:
 	poetry run make -C docs html
 
+# Clean documentation (HTML)
+docs-clean:
+	poetry run make -C docs clean
+
 # Build docs and open in default browser
 docs-open: docs-build
 	xdg-open docs/build/html/index.html
@@ -24,4 +28,5 @@ help:
 	@echo "  make setup        - Install dependencies"
 	@echo "  make clean        - Remove cache files"
 	@echo "  make docs-build   - Build HTML documentation"
+	@echo "  make docs-clean   - Clean HTML documentation"
 	@echo "  make docs-open    - Build docs and open in browser"
