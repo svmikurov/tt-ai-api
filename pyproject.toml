@@ -7,12 +7,17 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "sphinx (>=9.1.0,<10.0.0)"
-]
 
 [tool.poetry]
 packages = [{include = "sd", from = "src"}]
+
+[dependency-groups]
+entrypoint = [
+    "fastapi (>=0.141.1,<0.142.0)"
+]
+docs = [
+    "sphinx (>=9.1.0,<10.0.0)"
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
