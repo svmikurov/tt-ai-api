@@ -4,4 +4,5 @@
 .. toctree::
    :maxdepth: 2
 
-   real-time 
+   osi/index
+   real-time
