@@ -18,6 +18,9 @@ entrypoint = [
 docs = [
     "sphinx (>=9.1.0,<10.0.0)"
 ]
+infrastructure = [
+    "uvicorn[standard] (>=0.52.3,<0.53.0)"
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
