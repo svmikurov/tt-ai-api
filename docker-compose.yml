@@ -2,7 +2,7 @@ services:
   ai-api:
     build:
       context: .
-      dockerfile: ./docker/entrypoint/Dockerfile.ai_api
+      dockerfile: ./docker/Dockerfile.ai_api
     ports:
       - "8001:8001"
     volumes:
@@ -12,7 +12,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: ./docker/entrypoint/Dockerfile
+      dockerfile: ./docker/Dockerfile.api
     ports:
       - "8000:8000"
     volumes:
@@ -57,7 +57,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: ./docker/entrypoint/Dockerfile
+      dockerfile: ./docker/Dockerfile.worker
     command: celery -A src.sd.infrastructure.broker.tasks worker --loglevel=info
     volumes:
       - ./:/app
