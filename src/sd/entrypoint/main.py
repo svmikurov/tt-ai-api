@@ -6,13 +6,12 @@ import redis
 import os
 from src.sd.infrastructure.broker.tasks import process_ml_request
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-REDIS_URL = os.getenv("REDIS_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", 'postgresql://user:password@db:5432/demo')
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 app = FastAPI(title='Demo API', version='0.1.0')
 engine = create_engine(DATABASE_URL)
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-
+redis_client = redis.from_url(REDIS_URL)
 
 @app.get('/')
 async def root():
