@@ -1,10 +1,20 @@
-# Entyrpoint dependencies
+# ======= Entrypoint layer =======
+
+# API server
 fastapi>=0.141.1,<0.142.0
 
-# Infrastructure dependencies
+# ======= Infrastructure layer =======
+
+# Asynchronous Server Gateway Interface
 uvicorn[standard]>=0.52.3,<0.53.0
 
 # Database
 sqlalchemy==2.0.37
 psycopg2-binary==2.9.9
 asyncpg==0.30.0
+
+# Redis
+redis==5.2.1
+
+# Broker
+celery==5.4.0
