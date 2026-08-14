@@ -8,9 +8,13 @@ services:
     volumes:
       - ./:/app
     environment:
-      - ENV=developments
+      # Dependency instalation environments
       - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
       - PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+      # Entrypont
+      - ENV=developments
+      # Database
+      - DATABASE_URL=postgresql://user:password@db:5432/demo
 
   db:
     image: postgres:15-alpine
@@ -19,11 +23,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
+      # Dependenci instalation environments
+      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      - PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+      # Database
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=demo
-      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-      - PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
 
 volumes:
   postgres_data:
