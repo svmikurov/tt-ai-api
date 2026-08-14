@@ -3,3 +3,8 @@ fastapi>=0.141.1,<0.142.0
 
 # Infrastructure dependencies
 uvicorn[standard]>=0.52.3,<0.53.0
+
+# Database
+sqlalchemy==2.0.37
+psycopg2-binary==2.9.9
+asyncpg==0.30.0
