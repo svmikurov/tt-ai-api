@@ -13,3 +13,4 @@ Tech task CHKPZ documentation
    interview/index
    theory/index
    glossary/index
+   adr/index
