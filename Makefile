@@ -39,6 +39,20 @@ server-restart: server-kill server-run
 
 # ---------- Check / Test ----------
 
+lint:
+	poetry run ruff check
+
+fix:
+	poetry run ruff check --fix
+
+format:
+	poetry run ruff format
+
+# Full pre-commit check (format + fix + type-check + test)
+check: format fix type-check test
+
+# ---------- Docker ----------
+
 docker-up:
 	docker compose up --build
 
@@ -67,6 +81,12 @@ help:
 	@echo "  make server-run   	- Run API server (port 8000)"
 	@echo "  make server-kill	- Stop API server"
 	@echo "  make server-restart	- Restart API server"
+	@echo ""
+	@echo "Check"
+	@echo "  lint			- Lint code (read-only, no fixes)"
+	@echo "  fix			- Auto-fix lint issues"
+	@echo "  format		- Format code"
+	@echo "  check			- Full pre-commit check (format + fix + type-check + test)"
 	@echo ""
 	@echo "Other:"
 	@echo "  make help		- Show this help"
