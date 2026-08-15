@@ -5,7 +5,7 @@ services:
       dockerfile: ./docker/Dockerfile.ai_api
     ports:
       - "8001:8001"
-    command: uvicorn sd.entrypoint.ai_api:app --host 0.0.0.0 --port 8001 --reload
+    command: uvicorn sd.ai_api:app --host 0.0.0.0 --port 8001 --reload
     restart: unless-stopped
 
   api:
@@ -14,7 +14,7 @@ services:
       dockerfile: ./docker/Dockerfile.api
     ports:
       - "8000:8000"
-    command: uvicorn sd.entrypoint.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn sd.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       # Dependency instalation environments
       - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
@@ -56,7 +56,7 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.worker
-    command: celery -A sd.infrastructure.broker.tasks worker --loglevel=info
+    command: celery -A sd.tasks worker --loglevel=info
     environment:
       - REDIS_URL=redis://redis:6379/0
       - AI_API_URL=http://ai-api:8001/predict

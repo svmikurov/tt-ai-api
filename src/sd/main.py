@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine, text
 import redis
 import os
-from sd.infrastructure.broker.tasks import process_ml_request
+from sd.tasks import process_ml_request
 
 DATABASE_URL = os.getenv("DATABASE_URL", 'postgresql://user:password@db:5432/demo')
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
