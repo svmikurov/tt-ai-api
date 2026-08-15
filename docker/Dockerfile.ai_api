@@ -6,5 +6,3 @@ COPY requirements.system.txt .
 RUN pip install --no-cache-dir -r requirements.system.txt
 
 COPY . .
-
-CMD ["uvicorn", "src.sd.entrypoint.ai_api:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "1"]
