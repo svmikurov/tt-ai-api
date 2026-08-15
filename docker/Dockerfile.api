@@ -11,4 +11,4 @@ WORKDIR /app
 COPY requirements.system.txt .
 RUN pip install --no-cache-dir -r requirements.system.txt
 
-COPY . .
+COPY src/ ./
