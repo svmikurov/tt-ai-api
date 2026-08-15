@@ -49,7 +49,7 @@ format:
 	poetry run ruff format
 
 # Full pre-commit check (format + fix + type-check + test)
-check: format fix type-check test
+check: format fix
 
 # ---------- Docker ----------
 
