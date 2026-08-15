@@ -2,6 +2,7 @@
 
 # API client
 requests==2.32.3
+dependency-injector==4.49.1
 
 # ======= Entrypoint layer =======
 
