@@ -37,6 +37,17 @@ server-kill:
 server-restart: server-kill server-run
 
 
+# ---------- Check / Test ----------
+
+docker-up:
+	docker compose up --build
+
+docker-down:
+	docker compose down
+
+docker-check:
+	./check.sh
+
 # ---------- Help ----------
 help:
 	@echo "==================="
