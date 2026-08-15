@@ -6,7 +6,7 @@ authors = [
     {name = "Sergei Mikurov",email = "454004@mail.ru"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4"
 
 [tool.poetry]
 packages = [{include = "sd", from = "src"}]
@@ -16,6 +16,8 @@ celery = "^5.6.3"
 sqlalchemy = "^2.0.52"
 redis = "^8.1.0"
 dependency-injector = "^4.49.1"
+aioredis = "^2.0.1"
+aio-pika = "^10.0.1"
 
 [dependency-groups]
 entrypoint = [
