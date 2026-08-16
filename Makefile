@@ -2,7 +2,7 @@
 # Tech task CHCKZ project makefile
 # ============================================
 
-.PHONY: setup clean docs-build docs-clean docs-open server-run server-kill help
+.PHONY: setup clean docs-build docs-clean docs-open server-run server-kill help type-check
 
 # ---------- Setup ----------
 setup:
@@ -39,6 +39,9 @@ server-restart: server-kill server-run
 
 # ---------- Check / Test ----------
 
+type-check:
+	poetry run mypy .
+
 lint:
 	poetry run ruff check
 
@@ -48,8 +51,7 @@ fix:
 format:
 	poetry run ruff format
 
-# Full pre-commit check (format + fix + type-check + test)
-check: format fix
+check: format fix type-check
 
 # ---------- Docker ----------
 
@@ -87,6 +89,7 @@ help:
 	@echo "  fix			- Auto-fix lint issues"
 	@echo "  format		- Format code"
 	@echo "  check			- Full pre-commit check (format + fix + type-check + test)"
+	@echo "  type-check		- Check types (mypy)"
 	@echo ""
 	@echo "Other:"
 	@echo "  make help		- Show this help"
