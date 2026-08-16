@@ -3,7 +3,7 @@
 import json
 import time
 import uuid
-from typing import Any, AsyncGenerator
+from typing import AsyncGenerator
 
 from .abstract import AbstractResultStorage, AbstractTaskProducer
 from .enums import SSEvent
