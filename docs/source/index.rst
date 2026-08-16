@@ -13,4 +13,10 @@ Tech task CHKPZ documentation
    interview/index
    theory/index
    glossary/index
-   adr/index
+   architecture/adr/index
+   architecture/database
+   architecture/api
+   architecture/diagrams/index
+   getting-started/index
+   operations/index
+   development/index

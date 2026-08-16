@@ -26,3 +26,8 @@ exclude_patterns: list[str] = []
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+
+
+# extensions = [
+#     'sphinxcontrib.mermaid',
+# ]
