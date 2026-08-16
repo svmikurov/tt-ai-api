@@ -8,3 +8,6 @@ static/
 # Byte-compiled
 __pycache__
 *.mo
+
+# Temporary
+*.bkp
