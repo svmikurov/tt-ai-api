@@ -1,0 +1,42 @@
+target-version = "py313"
+line-length = 79
+exclude = [
+    ".github/*",
+    ".venv*",
+    "docs/*",
+]
+
+[lint]
+preview = true  # checks will include unstable rules and fixes
+select = [
+    "F",    # pyflakes: https://pypi.org/project/pyflakes/
+    "E",    # pycodestyle: Error; pycodestyle: https://pypi.org/project/pycodestyle/
+    "W",    # pycodestyle: Warning
+    "I",    # isort: https://pypi.org/project/isort/
+    "N",    # pep8-naming: https://pypi.org/project/pep8-naming/
+    "D",    # pydocstyle: https://pypi.org/project/pydocstyle/
+    "B",    # flake8-bugbear: https://pypi.org/project/flake8-bugbear/
+    "C90",  # mccabe: https://pypi.org/project/mccabe/
+    "Q",    # flake8-quotes: https://pypi.org/project/flake8-quotes/
+]
+ignore = [
+    "D105",     # Missing docstring in magic method
+    "D107",     # Missing docstring in `__init__`
+    "D203",     # 1 blank line required before class docstring
+    "D211",     # No blank lines allowed before class docstring
+    "D213",     # Multi-line docstring summary should start at the second line
+    "D416",     # Section name should end with a colon
+    "N818",     # Exception name should be named with an Error suffix
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["D101", "D102", "D103"]
+
+[lint.flake8-quotes]
+inline-quotes = "single"
+
+[format]
+quote-style = "single"
+
+[lint.pycodestyle]
+max-doc-length = 72
