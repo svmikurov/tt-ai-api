@@ -4,4 +4,5 @@
 .. toctree::
    :maxdepth: 2
 
-   doc-rule/index 
+   guides/index
+   project/index
