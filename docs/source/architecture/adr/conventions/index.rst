@@ -4,5 +4,5 @@ ADR convention
 .. toctree::
    :maxdepth: 2
 
-   sources
+   sources/index
    example
