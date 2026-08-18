@@ -11,6 +11,8 @@ docs-build:
 docs-clean:
 	poetry run make -C docs clean
 
+docs-rebuild: docs-clean docs-build
+
 docs-open: docs-build
 	xdg-open docs/build/html/index.html 2>/dev/null || true
 
@@ -74,6 +76,7 @@ help:
 	@echo "Documentation commands:"
 	@echo "  make docs-build   	- Build HTML documentation"
 	@echo "  make docs-clean   	- Clean HTML documentation"
+	@echo "  make docs-rebuild  - Rebuild HTML documentation"
 	@echo "  make docs-open    	- Build and open docs in browser"
 	@echo "  make docs-docker-run	- Build & run docs in Docker, open in browser"
 	@echo "  make docs-docker-stop	- Stop docs Docker container
