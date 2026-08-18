@@ -79,5 +79,6 @@
     // Dependency objects
     "autouse",
     "usefixtures",
-  ]
+  ],
+  "makefile.configureOnOpen": false
 }
