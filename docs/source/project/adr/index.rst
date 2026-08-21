@@ -8,3 +8,4 @@
    adr-002-use-sse
    adr-003-use-pydantic
    adr-004-api-versioning
+   adr-005-avoid-api-blocking
