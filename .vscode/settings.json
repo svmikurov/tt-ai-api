@@ -59,26 +59,13 @@
     "HACK:": {"foreground": "#FFFFFF", "background": "#6A1B9A"},
     "SECURITY:": {"foreground": "#FFFFFF", "background": "#C62828"}
   },
-  // Item enumeraion //
-  // Code spell
-  "cSpell.words": [
-    // Project
-    "Mikurov",
-    "venv",
-    "virtualenvs",
-    "pycache",
-    // Sphinx directives
-    "toctree",
-    "maxdepth",
-    // Dependencies
-    "pydantic",
-    "mypy",
-    "pytest",
-    "fastapi",
-    "sse_starlette",
-    // Dependency objects
-    "autouse",
-    "usefixtures",
-  ],
+  // Word cspell
+  "cSpell.enabled": true,
+  "cSpell.customDictionaries": {
+    "project-words": {
+      "file": ".cspell.json",
+      "addWords": true
+    }
+  },
   "makefile.configureOnOpen": false
 }

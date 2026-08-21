@@ -1,0 +1,26 @@
+{
+  "language": "en,ru",  
+  "words": [
+    // Project
+    "Mikurov",
+    "venv",
+    "virtualenvs",
+    "pycache",
+    // Sphinx directives
+    "toctree",
+    "maxdepth",
+    // Dependencies
+    "pydantic",
+    "mypy",
+    "pytest",
+    "fastapi",
+    "sse_starlette",
+    // Dependency objects
+    "autouse",
+    "usefixtures",
+    // Russian
+    "версионирование",
+    "версионирования",
+    "сратегия"
+  ],
+}
