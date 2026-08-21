@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Масштабирование &#8212; Tech task CHKPZ 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Логи и Метрики" href="logging-metrics.html" />
+    <link rel="prev" title="Operations" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>Масштабирование<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="id2">
+<h2>Пороги масштабирования<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">Условия масштабирования</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 33.3%" />
+<col style="width: 22.2%" />
+<col style="width: 22.2%" />
+<col style="width: 22.2%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Компонент</p></th>
+<th class="head"><p>Метрика</p></th>
+<th class="head"><p>Порог</p></th>
+<th class="head"><p>Действие</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>API</strong></p></td>
+<td><p>RPS (запросов/сек)</p></td>
+<td><p>&gt; 200</p></td>
+<td><p>Добавить экземпляр API</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Worker</strong></p></td>
+<td><p>Длина очереди (tasks)</p></td>
+<td><p>&gt; 100</p></td>
+<td><p>Добавить воркера</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Worker</strong></p></td>
+<td><p>Время обработки</p></td>
+<td><p>&gt; 10 сек</p></td>
+<td><p>Добавить воркера</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>AI API</strong></p></td>
+<td><p>Ошибки 429</p></td>
+<td><p>&gt; 5%</p></td>
+<td><p>Увеличить ресурсы</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Redis</strong></p></td>
+<td><p>Использование памяти</p></td>
+<td><p>&gt; 80%</p></td>
+<td><p>Увеличить память</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>PostgreSQL</strong></p></td>
+<td><p>Подключения</p></td>
+<td><p>&gt; 100</p></td>
+<td><p>Увеличить пул соединений</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id3">
+<h2>Горизонтальное масштабирование<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<section id="api">
+<h3>API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--scale<span class="w"> </span><span class="nv">api</span><span class="o">=</span><span class="m">3</span>
+</pre></div>
+</div>
+</section>
+<section id="worker">
+<h3>Worker<a class="headerlink" href="#worker" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>--scale<span class="w"> </span><span class="nv">worker</span><span class="o">=</span><span class="m">5</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id4">
+<h2>Вертикальное масштабирование<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<section id="redis">
+<h3>Redis<a class="headerlink" href="#redis" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">redis</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis:7-alpine</span>
+<span class="w">  </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis-server --maxmemory 2gb --maxmemory-policy allkeys-lru</span>
+</pre></div>
+</div>
+</section>
+<section id="postgresql">
+<h3>PostgreSQL<a class="headerlink" href="#postgresql" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">db</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres:15-alpine</span>
+<span class="w">  </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">POSTGRES_SHARED_BUFFERS=512MB</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id5">
+<h2>Автоматическое масштабирование<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<p>Для Kubernetes можно использовать HPA (Horizontal Pod Autoscaler):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoscaling/v2</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HorizontalPodAutoscaler</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">worker-hpa</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">scaleTargetRef</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">worker</span>
+<span class="w">  </span><span class="nt">minReplicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">maxReplicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">  </span><span class="nt">metrics</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resource</span>
+<span class="w">      </span><span class="nt">resource</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpu</span>
+<span class="w">        </span><span class="nt">target</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">averageUtilization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">70</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Tech task CHKPZ</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Interviwe:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../interview/index.html">Техническое собеседование (Метод «Айсберга»)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../architecture/adr/index.html">Architecture Decision Records</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">Теория</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/database.html">Схема базы данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/api.html">API Документация (OpenAPI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Operations</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Масштабирование</a></li>
+<li class="toctree-l2"><a class="reference internal" href="logging-metrics.html">Логи и Метрики</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../development/index.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Glosary:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../glossary/index.html">Глоссарий</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Operations</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Operations</a></li>
+      <li>Next: <a href="logging-metrics.html" title="next chapter">Логи и Метрики</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Sergei Mikurov.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/operations/scaling.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

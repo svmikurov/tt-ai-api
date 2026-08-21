@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ADR-007: Вынесение аутентификации на API Gateway &#8212; Tech task CHKPZ 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Теория" href="../../theory/index.html" />
+    <link rel="prev" title="ADR-006: Чистая архитектура (Clean Architecture)" href="adr-006-clean-architecture.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="adr-007-api-gateway">
+<h1>ADR-007: Вынесение аутентификации на API Gateway<a class="headerlink" href="#adr-007-api-gateway" title="Link to this heading">¶</a></h1>
+<section id="id1">
+<h2>Статус<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p><strong>Принято</strong></p>
+</section>
+<section id="id2">
+<h2>Контекст<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>Системе нужна аутентификация пользователей для доступа к API.</p>
+<p><strong>Требования:</strong></p>
+<ul class="simple">
+<li><p>Безопасная проверка JWT-токенов</p></li>
+<li><p>Централизованное управление политиками</p></li>
+<li><p>Разгрузка бэкенда</p></li>
+</ul>
+</section>
+<section id="id3">
+<h2>Решение<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p>Вынести аутентификацию на <strong>API Gateway</strong>.</p>
+<p><strong>Обоснование:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Разгрузка API</strong> — бэкенд занимается только бизнес-логикой</p></li>
+<li><p><strong>Централизация</strong> — единая точка входа для всех политик</p></li>
+<li><p><strong>Безопасность</strong> — единый механизм проверки токенов</p></li>
+<li><p><strong>Масштабирование</strong> — Gateway может быть отдельным компонентом</p></li>
+</ol>
+<p><strong>Архитектура:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Клиент → API Gateway (проверка JWT) → FastAPI (бизнес-логика)
+</pre></div>
+</div>
+<p><strong>Заголовки:</strong></p>
+<ul class="simple">
+<li><p><cite>X-User-ID</cite> — идентификатор пользователя</p></li>
+<li><p><cite>X-User-Role</cite> — роль пользователя</p></li>
+</ul>
+</section>
+<section id="id4">
+<h2>Последствия<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<section id="id5">
+<h3>Положительные<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>API не знает об аутентификации</p></li>
+<li><p>Упрощение кода бэкенда</p></li>
+<li><p>Централизованное управление безопасностью</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>Отрицательные<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Дополнительный компонент в инфраструктуре</p></li>
+<li><p>Требуется настройка Gateway</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>Компромиссы<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Выносим аутентификацию вместо встраивания в API (гибче, но сложнее)</p></li>
+</ul>
+</section>
+</section>
+<section id="id8">
+<h2>Альтернативы<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
+<section id="api">
+<h3>Альтернатива 1: Аутентификация в API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h3>
+<p>Проверка JWT внутри FastAPI.</p>
+<p><strong>Причина отклонения:</strong> Нарушает разделение ответственности, усложняет код API.</p>
+</section>
+<section id="id9">
+<h3>Альтернатива 2: Без аутентификации<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<p>Открытый доступ к API.</p>
+<p><strong>Причина отклонения:</strong> Небезопасно.</p>
+</section>
+</section>
+<section id="id10">
+<h2>Дата<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h2>
+<p>2026-08-16</p>
+</section>
+<section id="id11">
+<h2>Авторы<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Tech Task Team</p></li>
+</ul>
+</section>
+<section id="adr">
+<h2>Связанные ADR<a class="headerlink" href="#adr" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="adr-001-use-fastapi.html"><span class="doc">ADR-001: Использование FastAPI</span></a></p></li>
+<li><p><a class="reference internal" href="adr-006-clean-architecture.html"><span class="doc">ADR-006: Чистая архитектура (Clean Architecture)</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Tech task CHKPZ</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Interviwe:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../interview/index.html">Техническое собеседование (Метод «Айсберга»)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Architecture Decision Records</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conventions/index.html">ADR convention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-XXX-template.html">ADR-XXX: [Краткое название решения] (ШАБЛОН)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-001-use-fastapi.html">ADR-001: Использование FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-002-use-celery.html">ADR-002: Использование Celery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-003-use-sse.html">ADR-003: Использование SSE для Real-Time уведомлений</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-004-use-docker.html">ADR-004: Использование Docker и Docker Compose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-005-use-redis.html">ADR-005: Использование Redis как брокера сообщений</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-006-clean-architecture.html">ADR-006: Чистая архитектура (Clean Architecture)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ADR-007: Вынесение аутентификации на API Gateway</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory/index.html">Теория</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../database.html">Схема базы данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Документация (OpenAPI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operations/index.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/index.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Glosary:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary/index.html">Глоссарий</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Architecture Decision Records</a><ul>
+      <li>Previous: <a href="adr-006-clean-architecture.html" title="previous chapter">ADR-006: Чистая архитектура (Clean Architecture)</a></li>
+      <li>Next: <a href="../../theory/index.html" title="next chapter">Теория</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Sergei Mikurov.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../../_sources/architecture/adr/adr-007-api-gateway.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

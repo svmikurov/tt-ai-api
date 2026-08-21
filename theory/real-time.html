@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Способы длительного взаимодействия между сервером и клиентом &#8212; Tech task CHKPZ 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Схема базы данных" href="../architecture/database.html" />
+    <link rel="prev" title="Технологии передачи данных" href="protocols.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>Способы длительного взаимодействия между сервером и клиентом<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="websocket">
+<h2>WebSocket<a class="headerlink" href="#websocket" title="Link to this heading">¶</a></h2>
+<p><strong>Как работает</strong>: Полноценный двусторонний (duplex) канал. Клиент отправляет запрос на апгрейд соединения
+(через HTTP), после чего соединение “переключается” на <strong>бинарный протокол</strong> и остается
+открытым постоянно.</p>
+<p><strong>Особенности</strong>:</p>
+<ul class="simple">
+<li><p>Сервер может сам инициировать отправку данных клиенту в любой момент.</p></li>
+<li><p>Низкий оверхед (заголовки минимальные после установки).</p></li>
+<li><p>Держит TCP-соединение постоянно открытым.</p></li>
+</ul>
+<p><strong>Когда использовать</strong>: ML-модель, чаты, онлайн-игры, биржевые котировки,
+где нужна двусторонняя передача в реальном времени.</p>
+</section>
+<section id="server-sent-events">
+<h2>Server-Sent Events<a class="headerlink" href="#server-sent-events" title="Link to this heading">¶</a></h2>
+<p><strong>Как работает</strong>: Клиент открывает долгоживущее HTTP-соединение через обычный GET-запрос
+с заголовком Accept: text/event-stream.
+Сервер отправляет данные потоком (chunked transfer), а клиент слушает события.</p>
+<p><strong>Особенности</strong>:</p>
+<ul class="simple">
+<li><p>Только односторонний канал: сервер -&gt; клиент.</p></li>
+<li><p>Клиент НЕ может отправлять данные по этому же каналу (для отправки нужен отдельный HTTP-запрос).</p></li>
+<li><p>Автоматически переподключается при обрыве (встроенный механизм браузера).</p></li>
+<li><p>Работает поверх стандартного HTTP/2 (без проблем с прокси и корпоративными фаерволами).</p></li>
+</ul>
+<p><strong>Когда использовать</strong>: Ленты новостей, уведомления, стриминг логов, дашборды с обновляемыми графиками
+(когда клиент только получает данные, а отправляет через обычный REST).</p>
+</section>
+<section id="long-polling">
+<h2>Long Polling<a class="headerlink" href="#long-polling" title="Link to this heading">¶</a></h2>
+<p>(Устаревающий, но встречается)</p>
+<p><strong>Как работает</strong>: Клиент отправляет HTTP-запрос. Сервер не отвечает сразу, а держит соединение открытым
+до тех пор, пока не появится ответ (или не истечет таймаут, например, 30 сек).
+Как только сервер ответил, клиент тут же отправляет новый такой же запрос.</p>
+<p><strong>Особенности</strong>:</p>
+<ul class="simple">
+<li><p>Имитирует real-time поверх обычного HTTP.</p></li>
+<li><p>Огромный оверхед (каждый раз новые заголовки, повторная авторизация).</p></li>
+<li><p>Задержка между ответом и новым запросом.</p></li>
+<li><p>Неэффективно для сотен пользователей (много подвисших соединений).</p></li>
+</ul>
+<p><strong>Когда использовать</strong>: Легаси-системы, корпоративные прокси, которые блокируют WebSocket,
+или если нужно поддерживать очень старые браузеры (IE10-).</p>
+</section>
+<section id="grpc-streaming">
+<h2>gRPC Streaming<a class="headerlink" href="#grpc-streaming" title="Link to this heading">¶</a></h2>
+<p>Для микросервисов и бекенда</p>
+<p><strong>Как работает</strong>: gRPC (на базе HTTP/2) поддерживает 4 типа вызовов, включая Server Streaming
+(сервер шлет поток ответов) и Bidirectional Streaming (двусторонний поток).</p>
+<p><strong>Особенности</strong>:</p>
+<ul class="simple">
+<li><p>Бинарный протокол (Protobuf) — очень быстрый и компактный.</p></li>
+<li><p>Встроенная поддержка мультиплексирования (много потоков по одному TCP-каналу).</p></li>
+<li><p>Плохо поддерживается напрямую в браузерах (требуется gRPC-Web или прокси Envoy).</p></li>
+</ul>
+<p><strong>Когда использовать</strong>: Для внутреннего общения между микросервисами (бекенд-бекенд).
+Если у вас SPA с фронтом на React, обычно используют gRPC-Web через прокси.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Tech task CHKPZ</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Interviwe:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../interview/index.html">Техническое собеседование (Метод «Айсберга»)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../architecture/adr/index.html">Architecture Decision Records</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Теория</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="protocols.html">Технологии передачи данных</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Способы длительного взаимодействия между сервером и клиентом</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/database.html">Схема базы данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/api.html">API Документация (OpenAPI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operations/index.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/index.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Glosary:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../glossary/index.html">Глоссарий</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Теория</a><ul>
+      <li>Previous: <a href="protocols.html" title="previous chapter">Технологии передачи данных</a></li>
+      <li>Next: <a href="../architecture/database.html" title="next chapter">Схема базы данных</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Sergei Mikurov.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/theory/real-time.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Как настроите права доступа к функциям сервиса? &#8212; Tech task CHKPZ 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Если серверы в закрытом контуре без интернета, как вы будете ставить новые библиотеки?" href="contour.html" />
+    <link rel="prev" title="Как упаковать приложение?" href="pack.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>Как настроите права доступа к функциям сервиса?<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="id2">
+<h2>Вступление (Постановка задачи)<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>Можно разграничить на уровни контроля доступа:</p>
+<ul class="simple">
+<li><p>Уровень API: аутентификация пользователя (кто может вызывать)</p></li>
+<li><p>Уровень эндпоинтов: авторизация для вызова (что именно он может вызывать)</p></li>
+<li><p>Уровень данных: авторизация для доступа к данным (пользователь видит - только свое, аналитик - всех обезличенно)</p></li>
+<li><p>Уровень инфраструктуры: доступ к серверам, БД, очередям (кто имеет доступ)</p></li>
+</ul>
+</section>
+<section id="id3">
+<h2>Аутентификация пользователя<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p>В закрытом контуре без интернета я не могу использовать внешних провайдеров (Google, GitHub),
+поэтому выбираю внутреннюю JWT-аутентификацию:</p>
+<ul class="simple">
+<li><p>Пользователь получает JWT-токен после логина (передаёт логин/пароль).</p></li>
+<li><p>Токен подписывается асимметрично (RS256) или симметрично (HS256) с использованием секрета,
+хранящегося в K8s Secrets.</p></li>
+<li><p>В каждом запросе клиент передаёт токен в заголовке Authorization: Bearer &lt;token&gt;.</p></li>
+<li><p>Время жизни токена — 15–30 минут, а для долгих сессий используем Refresh Token
+(хранится в HttpOnly cookie или в отдельном хранилище).</p></li>
+</ul>
+<section id="jwt">
+<h3>Почему JWT, а не сессии в БД?<a class="headerlink" href="#jwt" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>JWT самодостаточен — не нужно каждый раз ходить в БД за сессией, что критично при высокой
+нагрузке от сотен пользователей.</p></li>
+<li><p>Легко масштабируется горизонтально (не нужен общий кэш сессий, как с Redis-сессиями).</p></li>
+<li><p>В закрытом контуре мы можем безопасно хранить секрет на всех инстансах бэкенда.</p></li>
+</ul>
+</section>
+</section>
+<section id="api">
+<h2>Авторизация на уровне API (Что ты можешь делать?)<a class="headerlink" href="#api" title="Link to this heading">¶</a></h2>
+<p>После аутентификации я проверяю права пользователя на выполнение конкретного действия. Здесь я использую ролевую модель (RBAC) с возможностью расширения до ABAC (атрибутный контроль) при необходимости.</p>
+<section id="id4">
+<h3>Структура ролей:<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Пользователь (User) — может отправлять запросы к ML-модели, просматривать свою историю.</p></li>
+<li><p>Аналитик (Analyst) — дополнительно может смотреть агрегированную статистику по всем запросам.</p></li>
+<li><p>Администратор (Admin) — управляет пользователями, настройками модели, просматривает логи.</p></li>
+<li><p>Сервисный аккаунт (Service) — используется для внутренних вызовов (например, между микросервисами), имеет ограниченный набор прав.</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>Реализация в коде:<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<p>Использую декораторы или middleware во фреймворке (FastAPI/Django).
+Например, декоратор &#64;require_roles(“admin”, “analyst”) навешивается на каждый эндпоинт.</p>
+</section>
+<section id="middleware">
+<h3>Middleware проверяет:<a class="headerlink" href="#middleware" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Есть ли токен и валиден ли он.</p></li>
+<li><p>Извлекает роль из payload токена.</p></li>
+<li><p>Проверяет, разрешена ли роль для этого эндпоинта.</p></li>
+<li><p>Если нет — возвращает 403 Forbidden.</p></li>
+</ul>
+<p>Тонкий нюанс: Если один пользователь может иметь несколько ролей (например, “user” и “analyst”),
+я храню в токене список ролей и проверяю пересечение с разрешёнными.</p>
+</section>
+</section>
+<section id="id6">
+<h2>Защита инфраструктурных функций (Доступ к сервисам)<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h2>
+<p>Права доступа нужны не только на уровне API, но и к служебным функциям:</p>
+<ul class="simple">
+<li><p>Health-эндпоинты (/health, /ready) — открыты без аутентификации (для оркестратора).</p></li>
+<li><p>Метрики Prometheus (/metrics) — закрыты, доступ только у мониторинг-системы
+(через внутренний сетевой сегмент или токен).</p></li>
+<li><p>Админ-панель (если есть) — доступна только админам, с дополнительным фактором
+(например, IP-белый список в закрытом контуре).</p></li>
+<li><p>Swagger/OpenAPI документация — в проде я её отключаю или закрываю базовой аутентификацией,
+чтобы не светить контракты.</p></li>
+<li><p>Миграции БД — запускаются отдельным init-контейнером с сервисным аккаунтом,
+который имеет права только на изменение схемы, но не на чтение данных пользователей.</p></li>
+</ul>
+</section>
+<section id="machine-to-machine">
+<h2>Межсервисная аутентификация (Machine-to-Machine)<a class="headerlink" href="#machine-to-machine" title="Link to this heading">¶</a></h2>
+<p>В нашем кейсе есть внешнее API модели. Наш бэкенд должен авторизоваться перед ним:</p>
+<ul class="simple">
+<li><p>Использую сервисный аккаунт с долгоживущим токеном (или API-ключом).</p></li>
+<li><p>Токен хранится в K8s Secrets и передаётся в переменную окружения MODEL_API_TOKEN.</p></li>
+<li><p>При каждом запросе к модели добавляю заголовок X-API-Key: &lt;token&gt; или Authorization: Bearer &lt;service_token&gt;.</p></li>
+</ul>
+<p>Если модель поддерживает mTLS (взаимную TLS-аутентификацию) — это ещё надёжнее: сертификаты тоже храню в Secrets и монтирую в контейнер.</p>
+<p>Особенность закрытого контура: все сертификаты и ключи генерируются внутренним PKI
+(Public Key Infrastructure), никаких внешних центров сертификации».</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Tech task CHKPZ</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Interviwe:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Техническое собеседование (Метод «Айсберга»)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../layer_1/index.html">Слой 1: Пик (API и Интерфейс)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../layer_2/index.html">Слой 2: Средний слой (Логика и Асинхронность)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../layer_3/index.html">Слой 3: Глубина (Данные и Состояние)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Основание (Инфраструктура и Безопасность)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../docs/index.html">Документирование</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/adr/index.html">Architecture Decision Records</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory/index.html">Теория</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/database.html">Схема базы данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/api.html">API Документация (OpenAPI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operations/index.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/index.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Glosary:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary/index.html">Глоссарий</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Техническое собеседование (Метод «Айсберга»)</a><ul>
+  <li><a href="index.html">Основание (Инфраструктура и Безопасность)</a><ul>
+      <li>Previous: <a href="pack.html" title="previous chapter">Как упаковать приложение?</a></li>
+      <li>Next: <a href="contour.html" title="next chapter">Если серверы в закрытом контуре без интернета, как вы будете ставить новые библиотеки?</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Sergei Mikurov.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../../_sources/interview/layer_4/access.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Как упаковать приложение? &#8212; Tech task CHKPZ 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Как настроите права доступа к функциям сервиса?" href="access.html" />
+    <link rel="prev" title="Основание (Инфраструктура и Безопасность)" href="index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>Как упаковать приложение?<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<p>Приложение можно упаковать в Docker контейнер.</p>
+<section id="docker">
+<h2>Использование Docker даст<a class="headerlink" href="#docker" title="Link to this heading">¶</a></h2>
+<section id="id2">
+<h3>Идентичность окружения<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>Помимо кода в контейнер упаковывается операционная система, переменные окружения,
+версии библиотек и рантайма (Python 3.8 or Python 3.13).</p>
+<p><strong>Без Docker</strong>: Приложение работает на Python 3.9, а на сервере стоит 3.11 — падает ошибка.</p>
+<p><strong>С Docker</strong>: Вы внутри контейнера используете Python 3.9, где бы этот контейнер ни запустили
+(на вашем ноутбуке, на сервере в облаке или на машине коллеги).</p>
+</section>
+<section id="id3">
+<h3>Изоляция ресурсов<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>У контейнера <strong>своя файловая система</strong> (он не видит ваши системные папки, если вы явно не
+разрешили).</p></li>
+<li><p>У контейнера <strong>своя сеть</strong> (можно открыть порт 8080 внутри, даже если на хосте этот порт уже
+занят другим сервисом).</p></li>
+<li><p>Вы не захламляете свою основную ОС установленных пакетов (все зависимости живут внутри
+образа и удаляются вместе с контейнером).</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Легкость в настройке микросервисов<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<p>Если у вас база данных, брокер очередей (Redis) и само приложение — вы описываете их в файле
+docker-compose.yml. Все поднимается одной командой docker-compose up -d. Вам не нужно вручную
+настраивать соединения между ними, Docker создает внутреннюю сеть автоматически.</p>
+</section>
+</section>
+<section id="id5">
+<h2>Сборка образа<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<section id="id6">
+<h3>Образ можно собрать в два этапа<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Первый этап (builder)</strong> — здесь я устанавливаю все зависимости из requirements.txt
+с фиксированными версиями. При необходимости собираю нативные расширения (например, для некоторых
+ML-библиотек).</p></li>
+<li><p><strong>Второй этап (финальный)</strong> — беру чистый минимальный образ Python (например, python:3.11-slim),
+копирую в него уже установленные пакеты из первого этапа, а затем добавляю только сам код,
+миграции и вспомогательные файлы.</p></li>
+</ul>
+<p>В результате финальный образ получается лёгким (без компиляторов и лишних утилит),
+безопасным (меньше поверхность для атак) и быстро загружается в закрытый контур.</p>
+</section>
+</section>
+<section id="id7">
+<h2>Что кладу внутрь образа (Содержимое)<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h2>
+<p>Внутрь образа я помещаю всё, что жёстко привязано к версии кода:</p>
+<ul class="simple">
+<li><p><strong>Исходный код</strong> — все .py файлы приложения.</p></li>
+<li><p><strong>Миграции базы данных</strong> (например, Alembic-скрипты) — они должны быть строго синхронизированы
+с версией кода.</p></li>
+<li><p><strong>Health-эндпоинты</strong> (/health, /ready, /live) — это часть самого приложения, потому что только оно
+знает, всё ли у него работает (БД подключена, ML-модель загружена).</p></li>
+<li><p><strong>Все Python-пакеты</strong> — они уже установлены на этапе сборки, поэтому при запуске контейнер
+не пытается ничего качать из интернета.</p></li>
+</ul>
+</section>
+<section id="id8">
+<h2>Что и как выношу наружу (Конфигурация и секреты)<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
+<p>Конфигурацию (адреса БД, порты, логирование) и секреты (пароли, ключи API) я выношу за пределы
+образа и передаю через:</p>
+<ul class="simple">
+<li><p>Переменные окружения — для простых параметров вроде DATABASE_HOST, REDIS_PORT, LOG_LEVEL.</p></li>
+<li><p>ConfigMap (в Kubernetes) — для групповой конфигурации, общей для всех подов.</p></li>
+<li><p>Secrets (в Kubernetes) или HashiCorp Vault — для паролей, токенов, ключей шифрования.
+В закрытом контуре это могут быть внутренние системы управления секретами.</p></li>
+</ul>
+<p>Такой подход позволяет использовать один и тот же образ для всех сред (dev, staging, production)
+— меняются только переменные. Это исключает ошибки типа “в проде забыли обновить конфиг”</p>
+</section>
+<section id="id9">
+<h2>Как управляю версиями и откатами<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h2>
+<p>Каждый собранный образ я тегирую двумя способами:</p>
+<ul class="simple">
+<li><p>Семантическим тегом (например, v1.2.3) — привязан к версии в Git.</p></li>
+<li><p>Уникальным идентификатором сборки (например, sha-$(git rev-parse –short HEAD))
+для точной трассировки.</p></li>
+</ul>
+<section id="id10">
+<h3>Это позволяет:<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Откатиться на предыдущую версию за секунды — просто меняю тег образа в манифесте Kubernetes и перезапускаю поды.</p></li>
+<li><p>Точно знать, какой код работает в продакшене в любой момент времени.</p></li>
+</ul>
+</section>
+</section>
+<section id="id11">
+<h2>Как упаковываю на уровне оркестрации<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
+<p>Помимо самого Docker-образа, я описываю всю систему в виде декларативных манифестов:</p>
+<ul class="simple">
+<li><p>Для локальной разработки — docker-compose.yml, где описаны все сервисы (бэкенд, Redis,
+PostgreSQL, Nginx).</p></li>
+<li><p>Для продакшена — Helm-чарт для Kubernetes. Это позволяет управлять всем приложением как единым
+пакетом: параметризовать конфигурацию, управлять репликами, обновлять по стратегии Rolling Update.</p></li>
+</ul>
+<p>Вместе Docker-образ + Helm-чарт образуют полный установочный пакет, который можно развернуть в
+любой инфраструктуре одной командой.</p>
+</section>
+<section id="devx">
+<h2>Что делаю для разработчиков (DevX)<a class="headerlink" href="#devx" title="Link to this heading">¶</a></h2>
+<p>Чтобы упростить жизнь команде, я добавляю в репозиторий:</p>
+<ul class="simple">
+<li><p>Makefile с командами make build (собрать образ), make up (поднять окружение), make test (запустить тесты в контейнере).</p></li>
+<li><p>.env.example — шаблон со всеми необходимыми переменными окружения.</p></li>
+</ul>
+<p>Это стандартизирует процесс и позволяет новому разработчику запустить проект за 2 минуты, даже не читая длинной документации».</p>
+</section>
+<section id="id12">
+<h2>Заключение<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h2>
+<p>Упаковка приложения строится вокруг неизменяемого Docker-образа, который содержит
+код, миграции, health-чеки и все зависимости. Конфигурация и секреты передаются извне через
+переменные окружения и системы управления конфигурацией. Это даёт нам воспроизводимость,
+безопасность, быстрый откат, возможность работать в закрытом контуре и единый процесс для всех сред
+— от локальной машины разработчика до масштабируемого продакшена в Kubernetes.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Tech task CHKPZ</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Interviwe:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Техническое собеседование (Метод «Айсберга»)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../layer_1/index.html">Слой 1: Пик (API и Интерфейс)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../layer_2/index.html">Слой 2: Средний слой (Логика и Асинхронность)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../layer_3/index.html">Слой 3: Глубина (Данные и Состояние)</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Основание (Инфраструктура и Безопасность)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../docs/index.html">Документирование</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/adr/index.html">Architecture Decision Records</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory/index.html">Теория</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/database.html">Схема базы данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/api.html">API Документация (OpenAPI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operations/index.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/index.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Glosary:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary/index.html">Глоссарий</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Техническое собеседование (Метод «Айсберга»)</a><ul>
+  <li><a href="index.html">Основание (Инфраструктура и Безопасность)</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Основание (Инфраструктура и Безопасность)</a></li>
+      <li>Next: <a href="access.html" title="next chapter">Как настроите права доступа к функциям сервиса?</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Sergei Mikurov.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../../_sources/interview/layer_4/pack.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

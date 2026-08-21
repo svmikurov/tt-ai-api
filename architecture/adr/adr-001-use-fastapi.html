@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ADR-001: Использование FastAPI &#8212; Tech task CHKPZ 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="ADR-002: Использование Celery" href="adr-002-use-celery.html" />
+    <link rel="prev" title="ADR-XXX: [Краткое название решения] (ШАБЛОН)" href="adr-XXX-template.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="adr-001-fastapi">
+<h1>ADR-001: Использование FastAPI<a class="headerlink" href="#adr-001-fastapi" title="Link to this heading">¶</a></h1>
+<section id="id1">
+<h2>Статус<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
+<p><strong>Принято</strong></p>
+</section>
+<section id="id2">
+<h2>Контекст<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
+<p>Необходимо разработать бэкенд для сервиса взаимодействия с ML-моделью.</p>
+<p><strong>Требования к фреймворку:</strong></p>
+<ul class="simple">
+<li><p>Асинхронная обработка запросов</p></li>
+<li><p>Поддержка длительных соединений (SSE)</p></li>
+<li><p>Автоматическая генерация документации (OpenAPI)</p></li>
+<li><p>Встроенная валидация данных</p></li>
+<li><p>Интеграция с брокерами сообщений</p></li>
+<li><p>Высокая производительность</p></li>
+</ul>
+</section>
+<section id="id3">
+<h2>Решение<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p>Использовать <strong>FastAPI</strong>.</p>
+<p><strong>Обоснование:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Асинхронность (ASGI)</strong> — позволяет одному воркеру обслуживать тысячи “висящих” соединений без блокировки</p></li>
+<li><p><strong>SSE</strong> — встроенная поддержка Server-Sent Events через <cite>StreamingResponse</cite></p></li>
+<li><p><strong>OpenAPI</strong> — автоматическая генерация документации (Swagger UI, ReDoc)</p></li>
+<li><p><strong>Pydantic</strong> — встроенная валидация и сериализация</p></li>
+<li><p><strong>Dependency Injection</strong> — чистая архитектура и тестируемость</p></li>
+<li><p><strong>Производительность</strong> — один из самых быстрых Python-фреймворков</p></li>
+</ol>
+</section>
+<section id="id4">
+<h2>Последствия<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<section id="id5">
+<h3>Положительные<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Высокая производительность</p></li>
+<li><p>Отличная документация и сообщество</p></li>
+<li><p>Встроенные инструменты (валидация, DI, OpenAPI)</p></li>
+<li><p>Легкая интеграция с Celery, Redis, SQLAlchemy</p></li>
+</ul>
+</section>
+<section id="id6">
+<h3>Отрицательные<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Меньше встроенных решений, чем в Django</p></li>
+<li><p>Требует понимания ASGI</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>Компромиссы<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Выбрали FastAPI вместо Django (слишком тяжёлый) и Flask (слишком простой, требует много доп. библиотек)</p></li>
+</ul>
+</section>
+</section>
+<section id="id8">
+<h2>Альтернативы<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h2>
+<section id="django">
+<h3>Альтернатива 1: Django<a class="headerlink" href="#django" title="Link to this heading">¶</a></h3>
+<p>Тяжёлый, синхронный, асинхронная поддержка пока нестабильна.</p>
+<p><strong>Причина отклонения:</strong> Избыточен для нашего сценария.</p>
+</section>
+<section id="flask">
+<h3>Альтернатива 2: Flask<a class="headerlink" href="#flask" title="Link to this heading">¶</a></h3>
+<p>Синхронный (WSGI), блокирует воркеры при долгих запросах.</p>
+<p><strong>Причина отклонения:</strong> Требует множества дополнительных библиотек для асинхронности и документации.</p>
+</section>
+</section>
+<section id="id9">
+<h2>Дата<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h2>
+<p>2026-08-15</p>
+</section>
+<section id="id10">
+<h2>Авторы<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Tech Task Team</p></li>
+</ul>
+</section>
+<section id="adr">
+<h2>Связанные ADR<a class="headerlink" href="#adr" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Tech task CHKPZ</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Interviwe:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../interview/index.html">Техническое собеседование (Метод «Айсберга»)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Architecture Decision Records</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="conventions/index.html">ADR convention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-XXX-template.html">ADR-XXX: [Краткое название решения] (ШАБЛОН)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ADR-001: Использование FastAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-002-use-celery.html">ADR-002: Использование Celery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-003-use-sse.html">ADR-003: Использование SSE для Real-Time уведомлений</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-004-use-docker.html">ADR-004: Использование Docker и Docker Compose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-005-use-redis.html">ADR-005: Использование Redis как брокера сообщений</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-006-clean-architecture.html">ADR-006: Чистая архитектура (Clean Architecture)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="adr-007-api-gateway.html">ADR-007: Вынесение аутентификации на API Gateway</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory/index.html">Теория</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../database.html">Схема базы данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Документация (OpenAPI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started/index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../operations/index.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development/index.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Glosary:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../glossary/index.html">Глоссарий</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Architecture Decision Records</a><ul>
+      <li>Previous: <a href="adr-XXX-template.html" title="previous chapter">ADR-XXX: [Краткое название решения] (ШАБЛОН)</a></li>
+      <li>Next: <a href="adr-002-use-celery.html" title="next chapter">ADR-002: Использование Celery</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Sergei Mikurov.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../../_sources/architecture/adr/adr-001-use-fastapi.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

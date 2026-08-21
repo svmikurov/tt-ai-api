@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Технологии передачи данных &#8212; Tech task CHKPZ 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Способы длительного взаимодействия между сервером и клиентом" href="real-time.html" />
+    <link rel="prev" title="Теория" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1>Технологии передачи данных<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="http">
+<h2>HTTP<a class="headerlink" href="#http" title="Link to this heading">¶</a></h2>
+<p>REST API работает по классической схеме HTTP:</p>
+<ul class="simple">
+<li><p>Клиент отправляет запрос (GET, POST, PUT, DELETE и т.д.)</p></li>
+</ul>
+<blockquote>
+<div><div class="highlight-text notranslate"><div class="highlight"><pre><span></span>GET users/{id}
+</pre></div>
+</div>
+</div></blockquote>
+<ul class="simple">
+<li><p>Сервер обрабатывает и отправляет ответ</p></li>
+<li><p>Соединение закрывается (или остается в пуле, но логически это отдельная транзакция)</p></li>
+</ul>
+</section>
+<section id="websocket">
+<h2>WebSocket<a class="headerlink" href="#websocket" title="Link to this heading">¶</a></h2>
+<p>WebSocket использует HTTP для установки соединения, после сервер отвечает готовностью
+с переключением на WS протокол.</p>
+<p>Это называется рукопожатие (handshake):</p>
+<ul>
+<li><p>Клиент шлет HTTP-запрос с заголовками</p></li>
+<li><p>Соединение остается HTTP-соединением (не переключается на другой протокол).</p></li>
+<li><p>Сервер просто долго держит это соединение открытым и периодически шлет кусочки данных (чанками) в формате data: …nn.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>GET ai/generate
+
+Connection: Upgrade
+Upgrade: websocket
+</pre></div>
+</div>
+</li>
+<li><p>Сервер отвечает статусом 101 Switching Protocols.</p></li>
+<li><p>После этого соединение переключается на протокол WebSocket, который работает поверх TCP,
+но уже НЕ поверх HTTP.</p></li>
+<li><p>Сервер отпраляет - фреймы</p></li>
+</ul>
+<section id="id2">
+<h3>Запрос клиента<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p>GET /chat HTTP/1.1
+Host: example.com
+Upgrade: websocket      ← Ключевой заголовок
+Connection: Upgrade     ← Ключевой заголовок
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+Origin: <a class="reference external" href="http://example.com">http://example.com</a></p>
+</section>
+<section id="id3">
+<h3>Ответ сервера:<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<p>HTTP/1.1 101 Switching Protocols   ← СТАТУС 101!
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=</p>
+</section>
+<section id="id4">
+<h3>Фрейм<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>[0x81 0x05 0x48 0x65 0x6C 0x6C 0x6F]  ← Текстовый фрейм "Hello"
+[0x82 0x04 0x01 0x02 0x03 0x04]       ← Бинарный фрейм
+</pre></div>
+</div>
+<p>WebSocket не накладывает ограничений на формат данных:</p>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="c1">// Можно отправлять что угодно</span>
+<span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">type</span><span class="o">:</span><span class="w"> </span><span class="s1">'message'</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="s1">'Hello'</span><span class="w"> </span><span class="p">}));</span>
+<span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="s1">'plain text'</span><span class="p">);</span>
+<span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="ow">new</span><span class="w"> </span><span class="nb">Uint8Array</span><span class="p">([</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="mf">4</span><span class="p">]));</span>
+<span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">Buffer</span><span class="p">.</span><span class="kr">from</span><span class="p">(</span><span class="s1">'binary data'</span><span class="p">));</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="sse">
+<h2>SSE<a class="headerlink" href="#sse" title="Link to this heading">¶</a></h2>
+<p><a class="reference external" href="https://html.spec.whatwg.org/multipage/server-sent-events.html">Server-Sent Events Specification</a></p>
+<ul>
+<li><p>Клиент отправляет обычный HTTP-запрос (например, GET /events).</p></li>
+<li><p>Сервер отвечает статусом 200 OK и специальным заголовком Content-Type: text/event-stream.</p>
+<p>Chunked Transfer Encoding</p>
+</li>
+</ul>
+<section id="id5">
+<h3>Запрос клиента<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>GET /events HTTP/1.1
+Host: example.com
+Accept: text/event-stream
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h3>Ответ сервера<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Пакет №1 (установка соединения и отправка заголовков):
+
+HTTP/1.1 200 OK\r\n  # Версия протокола | Код статуса | Пояснение (стартовая строка)
+Content-Type: text/event-stream\r\n  # критически важен, без него браузер не поймет, что это SSE
+Cache-Control: no-cache\r\n  # чтобы прокси не сохраняли ответ
+Connection: keep-alive\r\n  # явно указывает держать соединение открытым
+X-Accel-Buffering: no\r\n  # отключает буферизацию на уровне Nginx (чтобы данные доходили сразу)
+\r\n                       # пустая строка отделяет заголовки от тела
+
+Пакет №2 (первый чанк с данными, отправлен сразу после заголовков)
+или ": heartbeat\n\n":
+
+36\r\n                     # размер первого чанка в hex
+data: Событие 1\r\n
+data: {"user": "Alice", "action": "login", "time": 1744567890}
+\r\n                       # конец чанка
+
+Пакет №3 (второй чанк, отправлен через 5 секунд):
+
+15\r\n                     # размер второго чанка в hex
+data: {\r\n
+data:   "user": "Alice",\r\n
+data:   "action": "login",\r\n
+data:   "time": 1744567890\r\n
+data: }\r\n
+\r\n                       # конец чанка
+
+Пакет №4 (закрытие соединения):
+
+0\r\n
+\r\n
+[TCP FIN]                 # закрываем соединение
+</pre></div>
+</div>
+</section>
+<section id="id7">
+<h3>Поля SSE<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<table class="longtable docutils align-default" id="id8">
+<caption><span class="caption-text">Поля Server-Sent Events (SSE)</span><a class="headerlink" href="#id8" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 50.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Поле</p></th>
+<th class="head"><p>Назначение</p></th>
+<th class="head"><p>Где используется</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
+<td><p>Данные события (любой текст/JSON)</p></td>
+<td><p>На клиенте через <code class="docutils literal notranslate"><span class="pre">event.data</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">event</span></code></p></td>
+<td><p>Тип события (для разных обработчиков)</p></td>
+<td><p>На клиенте через <code class="docutils literal notranslate"><span class="pre">addEventListener</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
+<td><p>Идентификатор события (для восстановления)</p></td>
+<td><p>На клиенте через <code class="docutils literal notranslate"><span class="pre">event.lastEventId</span></code>, в запросе как <code class="docutils literal notranslate"><span class="pre">Last-Event-ID</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">retry</span></code></p></td>
+<td><p>Время переподключения (в мс)</p></td>
+<td><p>Автоматически применяется браузером</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">:</span></code></p></td>
+<td><p>Комментарий (игнорируется)</p></td>
+<td><p>Для отладки</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Tech task CHKPZ</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Interviwe:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../interview/index.html">Техническое собеседование (Метод «Айсберга»)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../architecture/adr/index.html">Architecture Decision Records</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Теория</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Технологии передачи данных</a></li>
+<li class="toctree-l2"><a class="reference internal" href="real-time.html">Способы длительного взаимодействия между сервером и клиентом</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/database.html">Схема базы данных</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture/api.html">API Документация (OpenAPI)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started/index.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../operations/index.html">Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../development/index.html">Development</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Glosary:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../glossary/index.html">Глоссарий</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Теория</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Теория</a></li>
+      <li>Next: <a href="real-time.html" title="next chapter">Способы длительного взаимодействия между сервером и клиентом</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Sergei Mikurov.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/theory/protocols.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
