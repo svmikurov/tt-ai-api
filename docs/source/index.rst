@@ -8,15 +8,25 @@ Tech task CHKPZ documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Interviwe:
 
    interview/index
-   theory/index
-   glossary/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
    architecture/adr/index
+
+   theory/index
    architecture/database
    architecture/api
-   architecture/diagrams/index
    getting-started/index
    operations/index
    development/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Glosary:
+
+   glossary/index
