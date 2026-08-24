@@ -48,6 +48,10 @@ docs-docker-run:
 	docker run -d -p 8000:8000 --name docs docs
 	sleep 2
 	xdg-open http://localhost:8000 2>/dev/null || true
+	@echo "Documentation successfully started!"
+	@echo "Available at: http://localhost:8000"
+	@echo "To stop:  docker stop docs"
+	@echo "To remove: docker rm -f docs"
 
 docs-docker-stop:
 	docker stop docs 2>/dev/null || true
