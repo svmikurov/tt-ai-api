@@ -1,5 +1,13 @@
+=====================
 Архитектурные решения
 =====================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Черновики
+
+   drafts/index
+
 
 .. toctree::
    :maxdepth: 1
@@ -9,6 +17,7 @@
    adr-002-use-sse
    adr-003-use-pydantic
    adr-004-api-versioning
+
 
 .. toctree::
    :maxdepth: 1
