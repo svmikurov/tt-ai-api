@@ -5,3 +5,4 @@
    :maxdepth: 2
 
    adr/index
+   c4/index
