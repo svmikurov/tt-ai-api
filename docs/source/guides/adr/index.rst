@@ -19,6 +19,11 @@
 
 `Оригинальная статья (Michael Nygard) <https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions>`_ / :doc:`перевод <./article-michael>`
 
+Дополнительно
+-------------
+
+`Solution Architecture Document (SAD) Best Practices <https://github.com/liemqv/sad-adr-best-practices>`_
+
 
 .. toctree::
    :hidden:
